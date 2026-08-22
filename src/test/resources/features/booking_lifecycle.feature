@@ -16,6 +16,7 @@ Feature: Booking related features
    When a post request is made for "create"
    Then a statuscode of 200 is received
    And the bookingid is stored as a global variable
+   And the firstname in the response is "Jim" for "create"
 
 Scenario: Get a booking
    Given a request is prepared to get a booking using the stored bookingid
@@ -26,6 +27,19 @@ Scenario: Get a booking
    Given a request is prepared to update a booking using the stored token
    When a put request is made
    Then a statuscode of 200 is received
+   And the firstname in the response is "James updated" for "update"
+
+  @negative
+  Scenario: Update a booking without authentication
+    Given a request is prepared to update a booking without a token
+    When a put request is made
+    Then a statuscode of 403 is received
+
+  @negative
+  Scenario: Get a booking with an invalid id
+    Given a request is prepared to get a booking with an invalid id
+    When a get request is made for "invalid booking"
+    Then a statuscode of 404 is received
 
  Scenario: Delete a booking
    Given a request is prepared to delete a booking using the stored token

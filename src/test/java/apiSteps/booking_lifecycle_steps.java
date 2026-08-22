@@ -5,6 +5,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.junit.Assert;
+import utility.APIPayloadConstants;
+
 import static io.restassured.RestAssured.given;
 
 // https://restful-booker.herokuapp.com/apidoc/index.html
@@ -48,6 +51,7 @@ public class booking_lifecycle_steps {
         switch (urlType) {
             case "a booking": url+="booking/"+bookingId;break;
             case "all booking": url+="booking";break;
+            case "invalid booking": url+="booking/999999999";break;
             default:break;
         }
 
@@ -61,20 +65,10 @@ public class booking_lifecycle_steps {
 
     @Given("a request is prepared to create a booking")
     public void a_request_is_prepared_to_create_a_booking() {
-
         request =  given()
                 .header("Content-Type", "application/json")
-                .body("{\n" +
-                        "    \"firstname\" : \"Jim\",\n" +
-                        "    \"lastname\" : \"Brown\",\n" +
-                        "    \"totalprice\" : 111,\n" +
-                        "    \"depositpaid\" : true,\n" +
-                        "    \"bookingdates\" : {\n" +
-                        "        \"checkin\" : \"2018-01-01\",\n" +
-                        "        \"checkout\" : \"2019-01-01\"\n" +
-                        "    },\n" +
-                        "    \"additionalneeds\" : \"Breakfast\"\n" +
-                        "}");
+                .body(APIPayloadConstants.getCreateUpdatePayload("Jim","Brown",111,true,
+                        "2018-01-01","2019-01-01","Breakfast"));
     }
 
     @Then("the bookingid is stored as a global variable")
@@ -95,7 +89,10 @@ public class booking_lifecycle_steps {
         request=given()
                 .header("Content-Type", "application/json")
                 .header("Cookie", "token="+token)
-                .body("{\n" +
+                .body(APIPayloadConstants.getCreateUpdatePayload("James updated","Brown",111,true,
+                                "2018-01-01","2019-01-01","Breakfast")
+                      );
+        /*  "{\n" +
                         "    \"firstname\" : \"James updated\",\n" +
                         "    \"lastname\" : \"Brown\",\n" +
                         "    \"totalprice\" : 111,\n" +
@@ -105,7 +102,7 @@ public class booking_lifecycle_steps {
                         "        \"checkout\" : \"2019-01-01\"\n" +
                         "    },\n" +
                         "    \"additionalneeds\" : \"Breakfast\"\n" +
-                        "}");
+                        "}"*/
     }
 
     @When("a put request is made")
@@ -129,6 +126,35 @@ public class booking_lifecycle_steps {
     @Given("a request is prepared to get all booking")
     public void a_request_is_prepared_to_get_all_booking() {
         request = given();
+    }
+
+    @Then("the firstname in the response is {string} for {string}")
+    public void the_firstname_in_the_response_is(String expectedFirstname, String type) {
+        String actualFirstname = "";
+        switch (type) {
+            case "create":
+                actualFirstname = response.jsonPath().getString("booking.firstname");
+                break;
+           case "update":
+               actualFirstname = response.jsonPath().getString("firstname");
+                break;
+        }
+        Assert.assertEquals(expectedFirstname, actualFirstname);
+    }
+
+    @Given("a request is prepared to update a booking without a token")
+    public void a_request_is_prepared_to_update_a_booking_without_a_token() {
+        request = given()
+                .header("Content-Type", "application/json")
+                .body(APIPayloadConstants.getCreateUpdatePayload("Not to be updated","Brown",111,true,
+                        "2018-01-01","2019-01-01","Breakfast"));
+
+    }
+
+    @Given("a request is prepared to get a booking with an invalid id")
+    public void a_request_is_prepared_to_get_a_booking_with_an_invalid_id() {
+        request = given()
+                .header("Content-Type", "application/json");
     }
 
 }
