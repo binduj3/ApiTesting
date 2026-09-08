@@ -92,17 +92,6 @@ public class booking_lifecycle_steps {
                 .body(APIPayloadConstants.getCreateUpdatePayload("James updated","Brown",111,true,
                                 "2018-01-01","2019-01-01","Breakfast")
                       );
-        /*  "{\n" +
-                        "    \"firstname\" : \"James updated\",\n" +
-                        "    \"lastname\" : \"Brown\",\n" +
-                        "    \"totalprice\" : 111,\n" +
-                        "    \"depositpaid\" : true,\n" +
-                        "    \"bookingdates\" : {\n" +
-                        "        \"checkin\" : \"2018-01-01\",\n" +
-                        "        \"checkout\" : \"2019-01-01\"\n" +
-                        "    },\n" +
-                        "    \"additionalneeds\" : \"Breakfast\"\n" +
-                        "}"*/
     }
 
     @When("a put request is made")
@@ -157,4 +146,26 @@ public class booking_lifecycle_steps {
                 .header("Content-Type", "application/json");
     }
 
+    @Then("the booking list should not be empty")
+    public void the_booking_list_should_not_be_empty() {
+
+        Assert.assertFalse(
+                "Booking list should not be empty",
+                response.jsonPath().getList("bookingid").isEmpty()
+        );
+    }
+
+    @Then("the deleted booking should no longer exist")
+    public void the_deleted_booking_should_no_longer_exist() {
+
+        Response getResponse =
+                given()
+                        .when()
+                        .get(BASE_URL + "/booking/" + bookingId);
+
+        Assert.assertEquals(
+                404,
+                getResponse.getStatusCode()
+        );
+    }
 }
